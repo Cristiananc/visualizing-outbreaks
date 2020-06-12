@@ -1,0 +1,29 @@
+---
+title: "Projeto Final"
+author: "Cristiana Aparecida Nogueira Couto"
+date: "11/06/2020"
+output: pdf_document
+---
+
+```{r}
+library(ggplot2)
+library(outbreaks)
+data("measles_hagelloch_1861")
+
+head(measles_hagelloch_1861)
+
+#Quantidade de pessoas com erupção cutânea reportadas por dia
+dates_rash <- table(measles_hagelloch_1861$date_of_rash)
+
+dates_rash <- data.frame(Date = format(as.Date(names(dates_rash)), '%d/%m/%Y'), Frequency = as.vector(dates_rash))
+
+
+dates_rash
+dates_rash$Date <- factor(dates_rash$Date, ordered = T)
+
+ggplot(dates_rash) +
+  geom_point(aes(x = Date, y = Frequency)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
