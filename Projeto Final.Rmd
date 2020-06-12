@@ -1,7 +1,7 @@
 ---
 title: "Projeto Final"
 author: "Cristiana Aparecida Nogueira Couto"
-date: "11/06/2020"
+date: "06/2020"
 output: pdf_document
 ---
 
@@ -9,6 +9,8 @@ output: pdf_document
 library(ggplot2)
 library(outbreaks)
 library(tidyverse)
+library(ggraph)
+library(tidygraph)
 
 data("measles_hagelloch_1861")
 
@@ -49,11 +51,9 @@ ggplot(infector) +
 ```
 
 ```{r}
-#Quem foi infectado por quem?
-```
-
-```{r}
 #Quantas famílias foram afetadas?
+ggplot(measles_hagelloch_1861) +
+  geom_point(aes(x = case_ID, y = date_of_prodrome, color = factor(family_ID)))
 ```
 
 ```{r}
@@ -61,7 +61,7 @@ ggplot(infector) +
 infecções_fora_da_familia <- cbind(Family_infector= measles_hagelloch_1861$family_ID[measles_hagelloch_1861$infector], 
       Family_person = measles_hagelloch_1861$family_ID)
 
-
+head(infecções_fora_da_familia)
 ```
 
 ```{r}
@@ -71,3 +71,23 @@ ggplot(measles_hagelloch_1861) +
   geom_point(aes(x = x_loc, y = y_loc))
 ```
 
+```{r}
+#ref:
+#http://www.hellomister.com.au/data-blog/2019/7/30/creating-an-arc-plot-part-1
+
+infector_edge <- measles_hagelloch_1861 %>%
+  select(infector, case_ID) %>%
+  rename(from = infector) %>%
+  rename(to = case_ID) %>%
+  na.omit()
+
+head(infector_edge)
+
+#Quem foi infectado por quem?
+infector_tidy <- tbl_graph(edges = infector_edge, directed = TRUE)
+infector1 <- ggraph(infector_tidy, layout = 'linear') +
+  geom_edge_arc()
+
+infector1
+
+```
