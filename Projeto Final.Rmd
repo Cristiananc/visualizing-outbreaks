@@ -8,6 +8,8 @@ output: pdf_document
 ```{r}
 library(ggplot2)
 library(outbreaks)
+library(tidyverse)
+
 data("measles_hagelloch_1861")
 
 head(measles_hagelloch_1861)
@@ -15,15 +17,57 @@ head(measles_hagelloch_1861)
 #Quantidade de pessoas com erupção cutânea reportadas por dia
 dates_rash <- table(measles_hagelloch_1861$date_of_rash)
 
-dates_rash <- data.frame(Date = format(as.Date(names(dates_rash)), '%d/%m/%Y'), Frequency = as.vector(dates_rash))
+dates_rash <- data.frame(Date = names(dates_rash), 
+                        Frequency = as.vector(dates_rash))
 
+dates_rash$Date <- as.Date(dates_rash$Date, format = "%Y-%m-%d")
 
 dates_rash
-dates_rash$Date <- factor(dates_rash$Date, ordered = T)
 
 ggplot(dates_rash) +
-  geom_point(aes(x = Date, y = Frequency)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  geom_line(aes(x = Date, y = Frequency)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  plot.title = element_text(hjust = 0.5)) +
+  scale_x_date(date_labels = "%d/%m/%Y", date_breaks = "5 day") +
+  labs(x = "Datas", y = "Frequência", 
+  title = "Pessoas reportadas com erupção cutânea causada por sarampo") 
 
+```
+
+```{r}
+#Para quantas pessoas cada indivíduo infectado transmitiu a doença?
+infector <- table(measles_hagelloch_1861$infector)
+infector <- data.frame(Indivíduo = names(infector), 
+                        Infectados_por_ele = as.vector(infector))
+infector
+
+#Fazer o espaçamento do eixo y maior
+ggplot(infector) +
+  geom_point(aes(x = Indivíduo, y = Infectados_por_ele)) +
+  coord_flip()
+
+```
+
+```{r}
+#Quem foi infectado por quem?
+```
+
+```{r}
+#Quantas famílias foram afetadas?
+```
+
+```{r}
+#Encontrando quem é a família do infector
+infecções_fora_da_familia <- cbind(Family_infector= measles_hagelloch_1861$family_ID[measles_hagelloch_1861$infector], 
+      Family_person = measles_hagelloch_1861$family_ID)
+
+
+```
+
+```{r}
+#Os indivíduos que estão na mesma familia tem a mesma localização
+#Há algo que posso acrescentar na visualização das posições?
+ggplot(measles_hagelloch_1861) +
+  geom_point(aes(x = x_loc, y = y_loc))
 ```
 
