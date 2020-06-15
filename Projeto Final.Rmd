@@ -5,6 +5,13 @@ date: "06/2020"
 output: pdf_document
 ---
 
+## Ref:
+
+http://sape.inf.usi.ch/quick-reference/ggplot2/colour
+
+http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/ggraph/ggraph.html
+
+
 ```{r}
 library(ggplot2)
 library(outbreaks)
@@ -24,6 +31,7 @@ dates_prodrome <- measles_hagelloch_1861 %>%
   
 dates_prodrome
 
+#Plotar os casos acumulados
 dates_rash <- measles_hagelloch_1861 %>%
   select(case_ID, date_of_rash) %>%
   group_by(date_of_rash) %>%
@@ -49,17 +57,21 @@ ggplot(dates_prodrome) +
 
 ```
 
-```{r}
+```{r fig.height = 10, fig.width = 5.5}
 #Para quantas pessoas cada indivíduo infectado transmitiu a doença?
 infector <- table(measles_hagelloch_1861$infector)
 infector <- data.frame(Indivíduo = names(infector), 
                         Infectados_por_ele = as.vector(infector))
 infector
 
-#Fazer o espaçamento do eixo y maior
+#Melhorar labels
 ggplot(infector) +
-  geom_point(aes(x = Indivíduo, y = Infectados_por_ele)) +
-  coord_flip()
+  geom_col(aes(x = reorder(Indivíduo, Infectados_por_ele),
+               y = Infectados_por_ele), fill = "tomato1") +
+  theme_bw() +
+  coord_flip() +
+  labs(y = "Quantidade de infectados pelo indíviduo", x = "Indíviduo", 
+  title = "Número de pessoas que cada indivíduo transmitiu sarampo")
 
 ```
 
@@ -88,6 +100,9 @@ ggplot(measles_hagelloch_1861) +
 #ref:
 #http://www.hellomister.com.au/data-blog/2019/7/30/creating-an-arc-plot-part-1
 
+nodes <- measles_hagelloch_1861 %>%
+  select(case_ID, class)
+
 infector_edge <- measles_hagelloch_1861 %>%
   select(infector, case_ID, class, x_loc, y_loc) %>%
   rename(from = infector) %>%
@@ -97,7 +112,8 @@ infector_edge <- measles_hagelloch_1861 %>%
 head(infector_edge)
 
 #Quem foi infectado por quem?
-infector_tidy <- tbl_graph(edges = infector_edge, directed = TRUE)
+infector_tidy <- tbl_graph(edges = infector_edge, directed = TRUE, nodes = nodes)
+
 infector1 <- ggraph(infector_tidy, layout = 'linear') +
   geom_edge_arc(aes(color = class)) +
   theme_bw() +
@@ -106,14 +122,43 @@ infector1 <- ggraph(infector_tidy, layout = 'linear') +
 
 infector1
 
-infector2 <- ggraph(infector_tidy, layout = 'stress') +
+infector_edge45 <- measles_hagelloch_1861 %>%
+  select(infector, case_ID, class, x_loc, y_loc) %>%
+  rename(from = infector) %>%
+  rename(to = case_ID) %>%
+  filter(from == 45) %>%
+  na.omit()
+
+infector_tidy45 <- tbl_graph(edges = infector_edge45, directed = TRUE, nodes = nodes)
+
+infector45 <- ggraph(infector_tidy45, layout = 'linear') +
+  geom_edge_arc(aes(color = class)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank())
+
+infector45
+
+```
+
+```{r fig.height = 8, fig.width = 12}
+#Melhorar o titulo, mudar a paleta de cores, mudar a estetica do class
+infector2 <- ggraph(infector_tidy, layout = 'kk') +
   geom_edge_link(arrow = arrow(length = unit(1, 'mm')),
                  end_cap = circle(1.5, 'mm')) +
-  geom_node_point(size = 3) +
-  theme_bw()
+  geom_node_point(aes(colour = class), size = 3) +
+  geom_node_text(aes(label = case_ID), repel = TRUE) + 
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, size = 22)) +
+  labs(title = "Quem infectou quem?")
+
+infector_tidy
 
 infector2
-
 ```
 
 ## Perguntas
