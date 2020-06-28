@@ -11,6 +11,7 @@ library(outbreaks)
 library(tidyverse)
 library(ggraph)
 library(tidygraph)
+library(ggrepel)
 
 data("measles_hagelloch_1861")
 
@@ -20,7 +21,9 @@ head(measles_hagelloch_1861)
 dates_prodrome <- measles_hagelloch_1861 %>%
   select(case_ID, date_of_prodrome) %>%
   group_by(date_of_prodrome) %>%
-  summarise(frequency = n())
+  summarise(frequency = n()) %>%
+  rename(cases_prodrome = frequency) %>%
+  rename(date = date_of_prodrome)
   
 dates_prodrome
 
@@ -28,19 +31,55 @@ dates_prodrome
 dates_rash <- measles_hagelloch_1861 %>%
   select(case_ID, date_of_rash) %>%
   group_by(date_of_rash) %>%
-  summarise(frequency = n())
+  summarise(frequency = n()) %>%
+  rename(cases_rash = frequency) %>%
+  rename(date = date_of_rash)
+
+dates_all <- full_join(dates_prodrome, dates_rash, by = "date")
+dates_all$cases_rash[is.na(dates_all$cases_rash)] <- 0
+dates_all$cases_prodrome[is.na(dates_all$cases_prodrome)] <- 0
+
+#Casos acumulados
+#dates_all[, 2:3] <- cumsum(dates_all[, 2:3])
+
+ggplot(dates_all) +
+  geom_area(aes(x = date, y= cases_rash, fill = 'Erupção Cutânea')) +
+  geom_area(aes(x = date, y = cases_prodrome, fill = 'Sintomas iniciais', alpha= 0.5)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  plot.title = element_text(hjust = 0.5, size = 10)) +
+  scale_x_date(date_labels = "%d/%m/%Y", date_breaks = "5 day") +
+  labs(x = "Datas", y = "Número de casos diários", 
+  title = "Surto epidêmico de sarampo na vila de Hagelloch, Alemanha, 1861") +
+  scale_fill_manual("", values = c('#46e566', '#4befef', '#ff8457')) +
+  guides(alpha = FALSE)
+  
+```
+```{r}
+ggsave(
+  filename = "daily_cases.png",
+  plot = last_plot(),
+  device = NULL,
+  path = NULL,
+  scale = 1,
+  units = c("in", "cm", "mm"),
+  dpi = 300,
+  limitsize = TRUE)
+```
+
+```{r}
 
 ggplot(dates_rash) +
-  geom_area(aes(x = date_of_rash, y = frequency)) +
+  geom_area(aes(x = date, y = cases_rash), fill = "#46e566") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
   plot.title = element_text(hjust = 0.5)) +
   scale_x_date(date_labels = "%d/%m/%Y", date_breaks = "5 day") +
-  labs(x = "Datas", y = "Frequência", 
-  title = "Pessoas reportadas com erupção cutânea causada por sarampo")
+  labs(x = "Datas", y = "Número diário de casos", 
+  title = "Casos reportados de erupção cutânea causada por sarampo")
 
 ggplot(dates_prodrome) +
-  geom_area(aes(x = date_of_prodrome, y = frequency)) +
+  geom_area(aes(x = date, y = cases_prodrome)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
   plot.title = element_text(hjust = 0.5)) +
@@ -75,8 +114,8 @@ ggsave(
   device = NULL,
   path = NULL,
   scale = 1,
-  width = 10,
-  height = 20,
+  width = 5.5,
+  height = 10,
   units = c("in", "cm", "mm"),
   dpi = 300,
   limitsize = TRUE)
@@ -99,11 +138,34 @@ head(infecções_fora_da_familia)
 
 ```{r}
 #Os indivíduos que estão na mesma familia tem a mesma localização
-#Há algo que posso acrescentar na visualização das posições?
-ggplot(measles_hagelloch_1861) +
-  geom_point(aes(x = x_loc, y = y_loc)) +
-  labs(name = "A localização espacial das casas dos indivíduos")
+#Há algo que posso acrescentar na visualização das posições? O número da família
+
+location <- measles_hagelloch_1861 %>%
+  select(x_loc, y_loc, family_ID) 
+
+location <- distinct(location)
+
+ggplot(location, aes(x = x_loc, y = y_loc, 
+                                   label = family_ID)) +
+  geom_point(colour = "#46e566") +
+  geom_text_repel(aes(label = family_ID), size = 2.5) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  labs(title = "Localização espacial das casas das famílias afetadas pelo surto de sarampo \n em Hagelloch, Alemanha, 1861", x = "Coordenada x (em metros)", 
+        y = "Coordenada y (em metros)")
 ```
+```{r}
+ggsave(
+  filename = "location.png",
+  plot = last_plot(),
+  device = NULL,
+  path = NULL,
+  scale = 1,
+  units = c("in", "cm", "mm"),
+  dpi = 300,
+  limitsize = TRUE)
+```
+
 
 ```{r fig.height = 8, fig.width = 12}
 #ref:
@@ -164,8 +226,8 @@ ggsave(
   device = NULL,
   path = NULL,
   scale = 1,
-  width = 15,
-  height = 10,
+  width = 12,
+  height = 8,
   units = c("in", "cm", "mm"),
   dpi = 300,
   limitsize = TRUE)
