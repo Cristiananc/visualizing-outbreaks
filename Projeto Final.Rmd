@@ -11,6 +11,7 @@ http://sape.inf.usi.ch/quick-reference/ggplot2/colour
 
 http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/ggraph/ggraph.html
 
+https://www.sciencedirect.com/science/article/pii/S1201971211000245
 
 ```{r}
 library(ggplot2)
@@ -93,10 +94,11 @@ head(infecções_fora_da_familia)
 #Os indivíduos que estão na mesma familia tem a mesma localização
 #Há algo que posso acrescentar na visualização das posições?
 ggplot(measles_hagelloch_1861) +
-  geom_point(aes(x = x_loc, y = y_loc))
+  geom_point(aes(x = x_loc, y = y_loc)) +
+  labs(name = "A localização espacial das casas dos indivíduos")
 ```
 
-```{r}
+```{r fig.height = 8, fig.width = 12}
 #ref:
 #http://www.hellomister.com.au/data-blog/2019/7/30/creating-an-arc-plot-part-1
 
@@ -132,17 +134,22 @@ infector_edge45 <- measles_hagelloch_1861 %>%
 infector_tidy45 <- tbl_graph(edges = infector_edge45, directed = TRUE, nodes = nodes)
 
 infector45 <- ggraph(infector_tidy45, layout = 'linear') +
-  geom_edge_arc(aes(color = class)) +
+  geom_edge_arc(aes(colour = class)) +
   theme_bw() +
   theme(axis.title.y = element_blank(),
-        axis.text.y = element_blank())
+        axis.text.y = element_blank(),
+        plot.title = element_text(hjust = 0.5, size = 20),
+        legend.box.background = element_rect(colour = "black"),
+        legend.position = c(0.9,0.75)) +
+scale_x_continuous(breaks=seq(0, 200, 5)) +
+labs(title = "Grafo dos casos infectados com sarampo pelo indivíduo 45", x = "Número de identificação dos casos.") +
+  scale_edge_colour_discrete(name = "Classe")
 
 infector45
 
 ```
 
-```{r fig.height = 8, fig.width = 12}
-#Melhorar o titulo, mudar a paleta de cores, mudar a estetica do class
+```{r fig.height = 8.5, fig.width = 12}
 infector2 <- ggraph(infector_tidy, layout = 'kk') +
   geom_edge_link(arrow = arrow(length = unit(1, 'mm')),
                  end_cap = circle(1.5, 'mm')) +
@@ -153,8 +160,14 @@ infector2 <- ggraph(infector_tidy, layout = 'kk') +
         axis.text.y = element_blank(),
         axis.text.x = element_blank(),
         axis.title.x = element_blank(),
-        plot.title = element_text(hjust = 0.5, size = 22)) +
-  labs(title = "Quem infectou quem?")
+        plot.title = element_text(hjust = 0.5, size = 20),
+        legend.box.background = element_rect(colour = "black"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        legend.position = c(0.95,0.8)) +
+  scale_colour_manual("Classe", values = c('#46e566', '#4befef', '#ff8457')) +
+  labs(title = "Grafo direcionado com os infectados por cada indivíduo diagnosticado com sarampo")
 
 infector_tidy
 
@@ -177,3 +190,18 @@ Quantos dias em média levam da aparição do primeiro sinal até o início da e
 Quanto tempo durou o surto?
 
 Quantas famílias foram afetadas?
+
+```{r}
+ggsave(
+  filename = "graph.png",
+  plot = last_plot(),
+  device = NULL,
+  path = NULL,
+  scale = 1,
+  width = 15,
+  height = 10,
+  units = c("in", "cm", "mm"),
+  dpi = 300,
+  limitsize = TRUE)
+```
+
