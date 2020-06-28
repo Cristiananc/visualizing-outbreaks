@@ -5,14 +5,6 @@ date: "06/2020"
 output: pdf_document
 ---
 
-## Ref:
-
-http://sape.inf.usi.ch/quick-reference/ggplot2/colour
-
-http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/ggraph/ggraph.html
-
-https://www.sciencedirect.com/science/article/pii/S1201971211000245
-
 ```{r}
 library(ggplot2)
 library(outbreaks)
@@ -65,16 +57,31 @@ infector <- data.frame(Indivíduo = names(infector),
                         Infectados_por_ele = as.vector(infector))
 infector
 
-#Melhorar labels
+
 ggplot(infector) +
   geom_col(aes(x = reorder(Indivíduo, Infectados_por_ele),
-               y = Infectados_por_ele), fill = "tomato1") +
+               y = Infectados_por_ele), fill = "#ff8457") +
   theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5, size = 15)) +
   coord_flip() +
-  labs(y = "Quantidade de infectados pelo indíviduo", x = "Indíviduo", 
-  title = "Número de pessoas que cada indivíduo transmitiu sarampo")
+  labs(y = "Quantidade de infectados pelo indíviduo", x = "Número de identificação", 
+  title = "Quantidade de transmissões de sarampo \n por um indivíduo infectado")
 
 ```
+```{r}
+ggsave(
+  filename = "infector.png",
+  plot = last_plot(),
+  device = NULL,
+  path = NULL,
+  scale = 1,
+  width = 10,
+  height = 20,
+  units = c("in", "cm", "mm"),
+  dpi = 300,
+  limitsize = TRUE)
+```
+
 
 ```{r}
 #Quantas famílias foram afetadas?
@@ -138,16 +145,32 @@ infector45 <- ggraph(infector_tidy45, layout = 'linear') +
   theme_bw() +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 16),
+        panel.grid.minor = element_blank(),
         plot.title = element_text(hjust = 0.5, size = 20),
         legend.box.background = element_rect(colour = "black"),
-        legend.position = c(0.9,0.75)) +
+        legend.position = c(0.95,0.75)) +
 scale_x_continuous(breaks=seq(0, 200, 5)) +
-labs(title = "Grafo dos casos infectados com sarampo pelo indivíduo 45", x = "Número de identificação dos casos.") +
-  scale_edge_colour_discrete(name = "Classe")
+labs(title = "Casos de sarampo gerados pelo caso ID 45", x = "\n Número de identificação dos casos.") +
+scale_edge_colour_manual("Classe", values = c('#46e566', '#4befef', '#ff8457'))
 
 infector45
 
 ```
+```{r}
+ggsave(
+  filename = "graph45.png",
+  plot = last_plot(),
+  device = NULL,
+  path = NULL,
+  scale = 1,
+  width = 15,
+  height = 10,
+  units = c("in", "cm", "mm"),
+  dpi = 300,
+  limitsize = TRUE)
+```
+
 
 ```{r fig.height = 8.5, fig.width = 12}
 infector2 <- ggraph(infector_tidy, layout = 'kk') +
