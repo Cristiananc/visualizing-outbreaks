@@ -96,10 +96,10 @@ infector <- data.frame(Indivíduo = names(infector),
                         Infectados_por_ele = as.vector(infector))
 infector
 
-
-ggplot(infector) +
-  geom_col(aes(x = reorder(Indivíduo, Infectados_por_ele),
-               y = Infectados_por_ele), fill = "#ff8457") +
+ggplot(infector, aes(x = reorder(Indivíduo, Infectados_por_ele), y = Infectados_por_ele)) +
+  geom_segment(aes(xend= Indivíduo, 
+                    yend = 0), color="#ff8457") +
+geom_point(size= 4, color="#ff8457") +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5, size = 15)) +
   coord_flip() +
@@ -166,8 +166,7 @@ ggsave(
   limitsize = TRUE)
 ```
 
-
-```{r fig.height = 8, fig.width = 12}
+```{r}
 #ref:
 #http://www.hellomister.com.au/data-blog/2019/7/30/creating-an-arc-plot-part-1
 
@@ -192,7 +191,10 @@ infector1 <- ggraph(infector_tidy, layout = 'linear') +
         axis.text.y = element_blank())
 
 infector1
+```
 
+
+```{r fig.height = 8, fig.width = 25}
 infector_edge45 <- measles_hagelloch_1861 %>%
   select(infector, case_ID, class, x_loc, y_loc) %>%
   rename(from = infector) %>%
@@ -203,22 +205,25 @@ infector_edge45 <- measles_hagelloch_1861 %>%
 infector_tidy45 <- tbl_graph(edges = infector_edge45, directed = TRUE, nodes = nodes)
 
 infector45 <- ggraph(infector_tidy45, layout = 'linear') +
-  geom_edge_arc(aes(colour = class)) +
+  geom_edge_arc(aes(colour = class), width = 1.5) +
   theme_bw() +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_blank(),
-        axis.title.x = element_text(size = 16),
+        axis.title.x = element_text(size = 20),
         panel.grid.minor = element_blank(),
-        plot.title = element_text(hjust = 0.5, size = 20),
+        plot.title = element_text(hjust = 0.5, size = 30),
+        axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.key.size = unit(1, "cm"),
         legend.box.background = element_rect(colour = "black"),
         legend.position = c(0.95,0.75)) +
-scale_x_continuous(breaks=seq(0, 200, 5)) +
-labs(title = "Casos de sarampo gerados pelo caso ID 45", x = "\n Número de identificação dos casos.") +
+scale_x_continuous(breaks = infector_edge45$to) +
+labs(title = "Casos gerados pelo caso ID 45 durante o surto epidêmico de sarampo em Hagelloch, Alemanha, 1861", x = "\n Número de identificação dos casos.") +
 scale_edge_colour_manual("Classe", values = c('#46e566', '#4befef', '#ff8457'))
 
 infector45
 
 ```
+
 ```{r}
 ggsave(
   filename = "graph45.png",
@@ -226,7 +231,7 @@ ggsave(
   device = NULL,
   path = NULL,
   scale = 1,
-  width = 12,
+  width = 25,
   height = 8,
   units = c("in", "cm", "mm"),
   dpi = 300,
@@ -266,7 +271,7 @@ Para quantas pessoas cada indivíduo infectado transmitiu a doença?
 
 Quem foi infectado por quem?
 
-Existe alguma infecção fora da esfera familiar?
+Quais foram as infecções fora da esfera familiar?
 
 Qual a localização dos infectados?
 
